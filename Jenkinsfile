@@ -9,14 +9,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("flask-hello-world:${env.BUILD_ID}")
+                    docker.build("flask-hello-world-web:${env.BUILD_ID}")
                 }
             }
         }
         stage('Run Tests') {
             steps {
                 script {
-                    docker.image("flask-hello-world:${env.BUILD_ID}").inside {
+                    docker.image("flask-hello-world-web:${env.BUILD_ID}").inside {
                         sh 'python -m unittest discover -s tests'
                     }
                 }
@@ -33,13 +33,20 @@ pipeline {
         }
     }
     post {
+        always {
+            
+            sh 'docker-compose down --volumes'
+        }
         success {
-            echo 'Build succeeded!'
-            // Send notification if using a notification plugin
+            mail to: 'maram.hassan95@gmail.com',
+                 subject: "Build Succeeded: ${env.BUILD_TAG}",
+                 body: "The build was successful. Check the logs for details."
         }
         failure {
-            echo 'Build failed!'
-            // Send notification if using a notification plugin
+            mail to: 'maram.hassan95@gmail.com',
+                 subject: "Build Failed: ${env.BUILD_TAG}",
+                 body: "The build failed. Please check the logs."
         }
     }
+
 }
