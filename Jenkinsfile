@@ -1,82 +1,64 @@
-
 pipeline {
     agent any
-
     environment {
-        ENVIRONMENT = 'DEV'
-        HOST = '0.0.0.0'
-        PORT = '5000'
-        DOCKER_IMAGE_NAME = 'maramhassan95/flask-hello-world-web'  
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Change to your actual credentials ID
+        IMAGE_NAME = 'maramhassan95/flask-hello-world-web' // Replace with your Flask Docker Hub repo name
     }
-
-    triggers {
-        githubPush()
-    }
-
     stages {
-        
-        stage('Build and Push Docker Image') {
+        stage('Clone Repository') {
             steps {
                 script {
-                    
-                    sh 'docker build -t flask-hello-world-web .'
-                    
-                    
-                    withCredentials(0[usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
-                        sh 'docker tag flask-hello-world-web:latest $DOCKER_IMAGE_NAME:latest'
-                        sh 'docker push $DOCKER_IMAGE_NAME:latest'
-                    }
+                    sh 'rm -rf simple-dockerfile' // Remove any existing directory
+                    sh 'git clone https://github.com/Maram-Hassan/flask-hello-world.git' // Clone the repository
                 }
             }
         }
-
-        stage('Run App') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    sh '''
-                    # Clean up any existing containers
-                    docker rm -f flask-hello-world-web || true
-                    # Run the application
-                    docker-compose up -d
-                    '''
+                    // Build the Docker image
+                    sh "docker build -t ${IMAGE_NAME}:latest simple-dockerfile"
                 }
             }
         }
-
-        stage('Test') {
+        stage('Login to Docker Hub') {
             steps {
-                sh 'docker exec flask-hello-world-web python tests/test_hello.py'  // Replace with your actual test command
-            }
-        }
-
-        stage('Deploy') {
-            when {
-                expression {
-                    return currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                script {
+                    // Log in to Docker Hub using credentials
+                    sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
                 }
             }
+        }
+        stage('Push Docker Image') {
             steps {
-                sh 'docker-compose up -d'
+                script {
+                    // Push the Docker image to Docker Hub
+                    sh "docker push ${IMAGE_NAME}:latest"
+                }
             }
         }
     }
-
     post {
         always {
-            
-            sh 'docker-compose down --volumes'
+            script {
+                // Send notification for the completion of the build
+                def buildStatus = currentBuild.result ?: 'SUCCESS'
+                mail to: 'maram.hassan95@gmail.com',
+                     subject: "Build ${buildStatus}: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                     body: "The build has finished with status: ${buildStatus}.\nCheck the logs for details: ${env.BUILD_URL}"
+            }
         }
         success {
-            mail to: ' maram.hassan95@gmail.com,',
-                 subject: "Build Succeeded: ${env.BUILD_TAG}",
-                 body: "The build was successful. Check the logs for details."
+            script {
+                // Additional success notifications (if needed)
+                echo 'Build succeeded!'
+            }
         }
         failure {
-            mail to: 'maram.hassan95@gmail.com',
-                 subject: "Build Failed: ${env.BUILD_TAG}",
-                 body: "The build failed. Please check the logs."
+            script {
+                // Additional failure notifications (if needed)
+                echo 'Build failed!'
+            }
         }
     }
 }
-
-
