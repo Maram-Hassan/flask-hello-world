@@ -29,16 +29,15 @@ pipeline {
                 }
             }
         }
-        // Uncomment this stage to deploy to Kubernetes
-        // stage('Deploy to Kubernetes') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //             kubectl apply -f k8s/deployment.yaml
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh '''
+                    kubectl apply -f k8s/deployment.yaml
+                    '''
+                }
+            }
+        }
     }
     post {
         always {
