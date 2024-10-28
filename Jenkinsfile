@@ -8,7 +8,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    sh 'rm -rf simple-dockerfile' // Remove any existing directory
+                    sh 'rm -rf flask-hello-world-web' // Remove any existing directory
                     sh 'git clone https://github.com/Maram-Hassan/flask-hello-world.git' // Clone the repository
                 }
             }
