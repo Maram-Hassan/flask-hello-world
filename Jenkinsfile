@@ -6,54 +6,37 @@ pipeline {
                 checkout scm
             }
         }
-        // Uncomment this stage to build the Docker image
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
-
-                    // Build the Docker image
-                    docker.build("maramhassan95/flask-hello-world-web:${env.BUILD_ID}")
+                    // Build steps go here
                 }
             }
         }
-        stage('Run Tests') {
+        stage('Test') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
-                        // Run tests inside the Docker container
-                        docker.image("maramhassan95/flask-hello-world-web:${env.BUILD_ID}").inside {
-                            sh 'python -m unittest discover -s tests'
-                        }
-                    }
+                    // Test steps go here
                 }
             }
         }
-        // Uncomment this stage to deploy to Kubernetes
-        // stage('Deploy to Kubernetes') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //             kubectl apply -f k8s/deployment.yaml
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Deploy') {
+            steps {
+                script {
+                    // Deploy steps go here
+                }
+            }
+        }
     }
     post {
         always {
-            // Clean up Docker containers and volumes
-            sh 'docker-compose down --volumes'
+            // Cleanup steps go here
         }
         success {
-            mail to: 'maram.hassan95@gmail.com',
-                 subject: "Build Succeeded: ${env.BUILD_TAG}",
-                 body: "The build was successful. Check the logs for details."
+            // Success notifications go here
         }
         failure {
-            mail to: 'maram.hassan95@gmail.com',
-                 subject: "Build Failed: ${env.BUILD_TAG}",
-                 body: "The build failed. Please check the logs."
+            // Failure notifications go here
         }
     }
 }
