@@ -23,7 +23,6 @@ pipeline {
                     
                     
                     withCredentials(0[usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
-                        sh 'docker login -u $dockerhubuser -p $pass'
                         sh 'docker tag flask-hello-world-web:latest $DOCKER_IMAGE_NAME:latest'
                         sh 'docker push $DOCKER_IMAGE_NAME:latest'
                     }
