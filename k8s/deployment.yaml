@@ -1,3 +1,4 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +15,12 @@ spec:
     spec:
       containers:
         - name: flask-app
-          image: flask-hello-world-web  # Update with your Docker image name
+          image: maramhassan95/flask-hello-world-web:v1
+          comand:
           ports:
             - containerPort: 5000
+          env:
+            - name: FLASK_APP
+              value: "hello.py"
+            - name: FLASK_RUN_HOST
+              value: "0.0.0.0"

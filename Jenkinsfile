@@ -9,7 +9,7 @@ pipeline {
         // stage('Build Docker Image') {
         //     steps {
         //         script {
-        //             docker.build("flask-hello-world-web:${env.BUILD_ID}")
+        //             docker.build("maramhassan95/flask-hello-world-web:${env.BUILD_ID}")
                     
         //         }
         //     }
@@ -17,7 +17,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    docker.image("flask-hello-world-web:${env.BUILD_ID}").inside {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
+                    docker.image("maramhassan95/flask-hello-world-web:${env.BUILD_ID}").inside {
                         sh 'python -m unittest discover -s tests'
                     }
                 }

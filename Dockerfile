@@ -11,13 +11,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
-COPY . .
+COPY src/ .
 
 # Set the FLASK_APP environment variable
-ENV FLASK_APP=hello.py 
+ENV FLASK_APP=hello.py
+ENV FLASK_RUN_HOST=0.0.0.0
 
 # Expose the app's port
 EXPOSE 5000
 
-# Run the application
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Run the application with 'flask run'
+CMD ["flask", "run"] 
