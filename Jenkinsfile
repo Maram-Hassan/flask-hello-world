@@ -1,61 +1,74 @@
+
 pipeline {
     agent any
+
     environment {
-        IMAGE_NAME = 'maramhassan95/flask-hello-world-web'
+        ENVIRONMENT = 'DEV'
+        HOST = '0.0.0.0'
+        PORT = '5000'
+        DOCKER_IMAGE_NAME = 'maramhassan95/flask-hello-world-web'  
     }
+
+    triggers {
+        githubPush()
+    }
+
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Docker Image') {
+        
+        stage('Build and Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
-                        
-                        // Build Docker image
-                        docker.build("${IMAGE_NAME}:${env.BUILD_ID}")
-                        
-                        // Push Docker image to Docker Hub
-                        sh "docker push ${IMAGE_NAME}:${env.BUILD_ID}"
+                    
+                    sh 'docker build -t flask-hello-world-web .'
+                    
+                    
+                    withCredentials(0[usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
+                        sh 'docker login -u $dockerhubuser -p $pass'
+                        sh 'docker tag flask-hello-world-web:latest $DOCKER_IMAGE_NAME:latest'
+                        sh 'docker push $DOCKER_IMAGE_NAME:latest'
                     }
                 }
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
-                        // Log in to Docker Hub
-                        
-                        // Run tests inside the Docker container
-                        docker.image("${IMAGE_NAME}:${env.BUILD_ID}").inside {
-                            sh 'python -m unittest discover -s tests'
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
+        stage('Run App') {
             steps {
                 script {
                     sh '''
-                    kubectl apply -f k8s/deployment.yaml
+                    # Clean up any existing containers
+                    docker rm -f flask-hello-world-web || true
+                    # Run the application
+                    docker-compose up -d
                     '''
                 }
             }
         }
+
+        stage('Test') {
+            steps {
+                sh 'docker exec flask-hello-world-web python tests/test_hello.py'  // Replace with your actual test command
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                expression {
+                    return currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
     }
+
     post {
         always {
+            
             sh 'docker-compose down --volumes'
         }
         success {
-            mail to: 'maram.hassan95@gmail.com',
+            mail to: ' maram.hassan95@gmail.com,',
                  subject: "Build Succeeded: ${env.BUILD_TAG}",
                  body: "The build was successful. Check the logs for details."
         }
@@ -66,3 +79,5 @@ pipeline {
         }
     }
 }
+
+
