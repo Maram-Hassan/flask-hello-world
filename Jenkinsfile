@@ -8,8 +8,13 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    sh 'rm -rf flask-hello-world-web' // Remove any existing directory
-                    sh 'git clone https://github.com/Maram-Hassan/flask-hello-world.git' // Clone the repository
+                    // Remove the existing directory if it exists
+                    sh '''
+                        if [ -d "flask-hello-world" ]; then
+                            rm -rf flask-hello-world
+                        fi
+                        git clone https://github.com/Maram-Hassan/flask-hello-world.git
+                    '''
                 }
             }
         }
@@ -17,7 +22,7 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                    sh "docker build -t ${IMAGE_NAME}:latest simple-dockerfile"
+                    sh "docker build -t ${IMAGE_NAME}:latest flask-hello-world"
                 }
             }
         }
@@ -25,7 +30,7 @@ pipeline {
             steps {
                 script {
                     // Log in to Docker Hub using credentials
-                    sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                    sh "echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin"
                 }
             }
         }
