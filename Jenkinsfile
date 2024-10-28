@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Change to your actual credentials ID
+        DOCKERHUB_CREDENTIALS = credentials('docker-credentials') // Change to your actual credentials ID
         IMAGE_NAME = 'maramhassan95/flask-hello-world-web' // Replace with your Flask Docker Hub repo name
     }
     stages {
