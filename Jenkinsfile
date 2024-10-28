@@ -10,11 +10,19 @@ pipeline {
             }
         }
 
-        // Uncomment this stage to build the Docker image
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:${env.BUILD_ID}")
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
+                        // Log in to Docker Hub
+                        sh 'echo $pass | docker login -u $dockerhubuser --password-stdin'
+                        
+                        // Build Docker image
+                        docker.build("${IMAGE_NAME}:${env.BUILD_ID}")
+                        
+                        // Push Docker image to Docker Hub
+                        sh "docker push ${IMAGE_NAME}:${env.BUILD_ID}"
+                    }
                 }
             }
         }
@@ -23,6 +31,10 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'pass', usernameVariable: 'dockerhubuser')]) {
+                        // Log in to Docker Hub
+                        sh 'echo $pass | docker login -u $dockerhubuser --password-stdin'
+                        
+                        // Run tests inside the Docker container
                         docker.image("${IMAGE_NAME}:${env.BUILD_ID}").inside {
                             sh 'python -m unittest discover -s tests'
                         }
@@ -57,4 +69,3 @@ pipeline {
         }
     }
 }
-
