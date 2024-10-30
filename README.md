@@ -1,3 +1,100 @@
+
+# Flask Hello World
+
+A simple Flask app for demonstration purposes, deployable with Docker, Kubernetes, and Terraform.
+
+## Prerequisites
+Ensure you have the following installed:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Kubernetes CLI (kubectl)](https://kubernetes.io/docs/tasks/tools/)
+- [Terraform](https://www.terraform.io/downloads)
+- [Minikube (for local Kubernetes)](https://minikube.sigs.k8s.io/docs/start/)
+
+## Getting Started
+
+### 1. Run the App Locally with Docker
+
+You can run the app in a Docker container by following these steps:
+
+1. **Build the Docker Image**
+   ```bash
+   docker build -t flask-hello-world .
+   ```
+
+2. **Run the Docker Container**
+   ```bash
+   docker run -p 5000:5000 flask-hello-world
+   ```
+
+3. **Access the App**
+   - Open your browser and go to `http://localhost:5000`
+
+### 2. Deploy on Kubernetes
+
+To deploy the app on a Kubernetes cluster, follow these steps:
+
+1. **Set up a Local Kubernetes Cluster (Optional)**
+   - Start a local cluster using Minikube (skip if deploying on a cloud-managed Kubernetes service like GKE, EKS, or AKS).
+     ```bash
+     minikube start
+     ```
+
+2. **Apply Kubernetes Configuration Files**
+   - The Kubernetes configuration files, typically named `deployment.yaml` and `service.yaml`, will create a Deployment and Service to run and expose the app.
+   - Run the following commands to deploy:
+     ```bash
+     kubectl apply -f deployment.yaml
+     kubectl apply -f service.yaml
+     ```
+
+3. **Access the Application**
+   - If using Minikube, access the service with:
+     ```bash
+     minikube service <service-name>
+     ```
+   - For cloud-managed clusters, check the external IP:
+     ```bash
+     kubectl get services
+     ```
+
+### 3. Provision Infrastructure with Terraform
+
+To provision infrastructure on a cloud provider (like AWS, GCP, or Azure) using Terraform, do the following:
+
+1. **Initialize Terraform**
+   - In the directory containing the Terraform files, run:
+     ```bash
+     terraform init
+     ```
+
+2. **Apply the Terraform Configuration**
+   - Apply the configurations to create infrastructure resources.
+     ```bash
+     terraform apply
+     ```
+   - Confirm any prompts with `yes`.
+
+3. **Verify Infrastructure**
+   - Terraform will output the created resources. If the setup includes a Kubernetes cluster, you can connect your `kubectl` to the cluster and deploy the app following the steps in the Kubernetes section above.
+
+## Cleaning Up
+
+- **Docker**: Stop the container by pressing `CTRL+C` in the terminal where it's running or using:
+  ```bash
+  docker ps  # Find the container ID
+  docker stop <container-id>
+  ```
+- **Kubernetes**: Delete the resources with:
+  ```bash
+  kubectl delete -f deployment.yaml
+  kubectl delete -f service.yaml
+  ```
+- **Terraform**: Tear down infrastructure with:
+  ```bash
+  terraform destroy
+  ```
+
+
 ### Jenkins pipeline
 ![Screenshot from 2024-10-28 20-32-40](https://github.com/user-attachments/assets/332736d2-4e10-4839-aa57-99f420bb99d4)
 ![Screenshot from 2024-10-28 20-35-26](https://github.com/user-attachments/assets/deeb12b1-c405-4383-af18-e7c943eba357)
